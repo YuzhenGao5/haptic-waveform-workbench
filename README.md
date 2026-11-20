@@ -1,5 +1,11 @@
 # Haptic Waveform Workbench
 
+[**打开本机工作台 · Open the local workbench**](http://127.0.0.1:61045/#designer) · [下载项目 ZIP · Download the project ZIP](https://github.com/YuzhenGao5/haptic-waveform-workbench/archive/refs/heads/main.zip)
+
+在连接马甲的电脑上启动 `Start-A-Drag-Observer.cmd`，然后点击上方入口。首次使用请先下载并解压整个项目，或用 GitHub Desktop 克隆。
+
+Start `Start-A-Drag-Observer.cmd` on the computer you use with the vest, then click the link above. For first-time setup, download and extract the project or clone it with GitHub Desktop.
+
 [中文](#中文) · [English](#english)
 
 ## 中文
@@ -10,7 +16,7 @@
 
 1. 在 Windows 安装 **Node.js 22 或更新版本**，并让 `node` 可在终端使用。项目使用 Node.js 自带模块，无需运行 `npm install`。
 2. 打开 bHaptics Player，在 Player 内连接马甲。编辑和导出波形时可以先不连接设备。 [bHaptics Player 下载与安装](https://support.bhaptics.com/en/support/solutions/articles/150000209816-install-and-set-up-bhaptics-player-for-windows-pc)
-3. 双击 `Start-A-Drag-Observer.cmd`，浏览器会打开本地工作台。也可在仓库目录运行下面的命令。终端会显示本地网址。
+3. 双击 `Start-A-Drag-Observer.cmd`，浏览器会打开本地工作台。也可在仓库目录运行下面的命令，再点击页面顶部的入口。
 
 ```powershell
 node A-Drag-Observer.mjs
@@ -42,7 +48,7 @@ A local browser workbench for arranging, previewing, and replaying vibration on 
 
 1. Install **Node.js 22 or later** on Windows and make `node` available in your terminal. The project uses Node.js built-in modules and requires no `npm install`.
 2. Open bHaptics Player and connect the vest. A vest is optional while editing and exporting. [Download and set up bHaptics Player](https://support.bhaptics.com/en/support/solutions/articles/150000209816-install-and-set-up-bhaptics-player-for-windows-pc)
-3. Double-click `Start-A-Drag-Observer.cmd` to open the local workbench. Alternatively, run the command below in the repository folder and use the local address printed in the terminal.
+3. Double-click `Start-A-Drag-Observer.cmd` to open the local workbench, or run the command below in the repository folder and use the link at the top of this README.
 
 ```powershell
 node A-Drag-Observer.mjs

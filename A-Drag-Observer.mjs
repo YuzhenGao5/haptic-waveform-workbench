@@ -8,6 +8,8 @@ import { designDurationMs, designPeak, sampleDesignFrame, validateDesign } from 
 
 const emptyPositions = { VestFront: [], VestBack: [] };
 const maxDesignBytes = 512 * 1024;
+const defaultObserverPort = 61045;
+const workbenchHeader = 'X-Haptic-Waveform-Workbench';
 
 function reply(response, status, body) {
   response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
@@ -125,7 +127,7 @@ export function createObserverServer({ play = playPreview, playCustom = playFram
     const host = `127.0.0.1:${request.socket.localPort}`;
     if (request.headers.host !== host) return reply(response, 403, { ok: false });
     if (request.method === 'GET' && request.url === '/') {
-      response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+      response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', [workbenchHeader]: '1' });
       return response.end(page);
     }
     if (request.method === 'GET' && (request.url === '/arrangement.mjs' || request.url === '/waveform.mjs')) {
@@ -183,6 +185,26 @@ export function createObserverServer({ play = playPreview, playCustom = playFram
   return { server, close };
 }
 
+function openWorkbench(port) {
+  const url = `http://127.0.0.1:${port}/#designer`;
+  console.log(`Haptic Waveform Workbench  ${url}`);
+  if (process.platform === 'win32') {
+    const browser = spawn('rundll32.exe', ['url.dll,FileProtocolHandler', url], { windowsHide: true, stdio: 'ignore' });
+    browser.on('error', () => console.log('请在浏览器中打开上方地址。 / Open the address above in your browser.'));
+    browser.unref();
+  }
+}
+
+async function workbenchIsRunning(port) {
+  try {
+    const response = await fetch(`http://127.0.0.1:${port}/`, { signal: AbortSignal.timeout(1500) });
+    await response.body?.cancel();
+    return response.ok && response.headers.get(workbenchHeader) === '1';
+  } catch {
+    return false;
+  }
+}
+
 function runObserver() {
   if (typeof WebSocket !== 'function' || typeof Promise.withResolvers !== 'function') {
     console.error('请使用 Node.js 22 或更新版本。');
@@ -190,17 +212,20 @@ function runObserver() {
     return;
   }
   const { server, close } = createObserverServer();
+  const port = Number(process.env.A_DRAG_OBSERVER_PORT ?? defaultObserverPort);
   process.once('SIGINT', close);
   process.once('SIGTERM', close);
-  server.listen(Number(process.env.A_DRAG_OBSERVER_PORT ?? 0), '127.0.0.1', () => {
-    const url = `http://127.0.0.1:${server.address().port}/#designer`;
-    console.log(`实时震动观察器  ${url}`);
-    console.log('在浏览器里设计、试听和导出波形。按 Ctrl+C 退出。');
-    if (process.platform === 'win32') {
-      const browser = spawn('rundll32.exe', ['url.dll,FileProtocolHandler', url], { windowsHide: true, stdio: 'ignore' });
-      browser.on('error', () => console.log('请手动在浏览器中打开上方地址。'));
-      browser.unref();
+  server.once('error', async error => {
+    if (error.code === 'EADDRINUSE' && await workbenchIsRunning(port)) {
+      openWorkbench(port);
+      return;
     }
+    console.error(`工作台启动失败 / Failed to start the workbench. ${error.message}`);
+    process.exitCode = 1;
+  });
+  server.listen(port, '127.0.0.1', () => {
+    openWorkbench(server.address().port);
+    console.log('按 Ctrl+C 退出。 / Press Ctrl+C to quit.');
   });
 }
 
